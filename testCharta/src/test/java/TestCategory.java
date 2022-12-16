@@ -88,7 +88,6 @@ public class TestCategory {
                 .when()
                 .put(URL_update + categoryId)
                 .then()
-                .log().all()
                 .body("status", equalTo("OK"))
                 .and().body("response.name", equalTo(name_update))
                 .and().body("response.icon", equalTo(icon_update))
