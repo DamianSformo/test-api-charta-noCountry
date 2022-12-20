@@ -1,3 +1,8 @@
+import Reportes.ExtenseFactory;
+import com.aventstack.extentreports.ExtentReports;
+import com.aventstack.extentreports.ExtentTest;
+import com.aventstack.extentreports.Status;
+import com.aventstack.extentreports.reporter.ExtentSparkReporter;
 import io.restassured.response.Response;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.Every;
@@ -36,6 +41,18 @@ public class TestIncome {
     String name = "";
     static Integer incomeId;
 
+    static ExtentSparkReporter spark = new ExtentSparkReporter("target/income-report.html");
+    static ExtentReports extent;
+    static ExtentTest test;
+
+    @BeforeAll
+    static void setUp(){
+        extent = ExtenseFactory.getInstance();
+        extent.attachReporter(spark);
+
+        test = extent.createTest("income_test");
+    }
+
     @BeforeEach
     void getToken(){
 
@@ -58,9 +75,10 @@ public class TestIncome {
         name = response.getBody().jsonPath().getString("response.firstName");
     }
 
-    @Test
-    @Order(1)
+    @Test @Order(1)
     void test_save() {
+
+        test.log(Status.INFO, "Inicia el test_save");
 
         JSONObject requestPOST = new JSONObject();
         requestPOST.put("amount", amount);
@@ -69,6 +87,8 @@ public class TestIncome {
         requestPOST.put("currencyId", currencyId);
         requestPOST.put("date", date);
         requestPOST.put("isIncluded", isIncluded);
+
+        test.log(Status.INFO, "Creación del body");
 
         Response response = given()
                 .contentType("application/json")
@@ -87,10 +107,16 @@ public class TestIncome {
         System.out.println("Código del Resultado test_save: " + response.getStatusCode());
 
         incomeId = response.getBody().jsonPath().getInt("response.id");
+
+        test.log(Status.INFO, "Ingreso almacenado en variable...");
+
+        test.log(Status.PASS, "Ingreso creado existosamente");
     }
 
     @Test @Order(2)
     void test_update() {
+
+        test.log(Status.INFO, "Inicia el test_update");
 
         JSONObject requestPOST = new JSONObject();
         requestPOST.put("amount", amount_update);
@@ -98,6 +124,8 @@ public class TestIncome {
         requestPOST.put("type", type_update);
         requestPOST.put("date", date_update);
         requestPOST.put("isIncluded", isIncluded_update);
+
+        test.log(Status.INFO, "Creación del body");
 
         Response response = given()
                 .contentType("application/json")
@@ -113,10 +141,14 @@ public class TestIncome {
                 .extract().response();
 
         System.out.println("Código del Resultado test_update: " + response.getStatusCode());
+
+        test.log(Status.PASS, "Ingreso actualizado existosamente");
     }
 
     @Test @Order(3)
     void test_getAll() {
+
+        test.log(Status.INFO, "Inicia el test_getAll");
 
         Response response = given()
                 .header("Authorization", "Bearer " + jwt)
@@ -140,10 +172,14 @@ public class TestIncome {
                 .extract().response();
 
         System.out.println("Código del Resultado test_getAll: " + response.getStatusCode());
+
+        test.log(Status.PASS, "Ingresos obtenidos existosamente");
     }
 
     @Test @Order(8)
     void test_delete() {
+
+        test.log(Status.INFO, "Inicia el test_delete");
 
         Response response = given()
                 .header("Authorization", "Bearer " + jwt)
@@ -154,5 +190,12 @@ public class TestIncome {
                 .extract().response();
 
         System.out.println("Código del Resultado test_delete: " + response.getStatusCode());
+
+        test.log(Status.PASS, "Ingreso eliminado existosamente");
+    }
+
+    @AfterAll
+    static void tearDown(){
+        extent.flush();
     }
 }

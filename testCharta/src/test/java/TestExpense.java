@@ -1,6 +1,11 @@
 import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
+import Reportes.ExtenseFactory;
+import com.aventstack.extentreports.ExtentReports;
+import com.aventstack.extentreports.ExtentTest;
+import com.aventstack.extentreports.Status;
+import com.aventstack.extentreports.reporter.ExtentSparkReporter;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.Every;
 import org.json.simple.JSONObject;
@@ -36,6 +41,18 @@ public class TestExpense {
     String name = "";
     static Integer expenseId;
 
+    static ExtentSparkReporter spark = new ExtentSparkReporter("target/extense-report.html");
+    static ExtentReports extent;
+    static ExtentTest test;
+
+    @BeforeAll
+    static void setUp(){
+        extent = ExtenseFactory.getInstance();
+        extent.attachReporter(spark);
+
+        test = extent.createTest("expense_test");
+    }
+
     @BeforeEach
     void getToken(){
 
@@ -56,10 +73,13 @@ public class TestExpense {
 
         jwt = response.getBody().jsonPath().getString("response.jwt");
         name = response.getBody().jsonPath().getString("response.firstName");
+
     }
 
     @Test @Order(1)
     void test_save() {
+
+        test.log(Status.INFO, "Inicia el test_save");
 
         JSONObject requestPOST = new JSONObject();
         requestPOST.put("amount", amount);
@@ -68,6 +88,8 @@ public class TestExpense {
         requestPOST.put("currencyId", currencyId);
         requestPOST.put("date", date);
         requestPOST.put("isIncluded", isIncluded);
+
+        test.log(Status.INFO, "Creación del body");
 
         Response response = given()
                 .contentType("application/json")
@@ -85,10 +107,16 @@ public class TestExpense {
         System.out.println("Código del Resultado test_save: " + response.getStatusCode());
 
         expenseId = response.getBody().jsonPath().getInt("response.id");
+
+        test.log(Status.INFO, "Gasto almacenado en variable...");
+
+        test.log(Status.PASS, "Gasto creado existosamente");
     }
 
     @Test @Order(2)
     void test_update() {
+
+        test.log(Status.INFO, "Inicia el test_update");
 
         JSONObject requestPOST = new JSONObject();
         requestPOST.put("amount", amount_update);
@@ -96,6 +124,8 @@ public class TestExpense {
         requestPOST.put("categoryId", categoryId_update);
         requestPOST.put("date", date_update);
         requestPOST.put("isIncluded", isIncluded_update);
+
+        test.log(Status.INFO, "Creación del body");
 
         Response response = given()
                 .contentType("application/json")
@@ -110,10 +140,14 @@ public class TestExpense {
                 .extract().response();
 
         System.out.println("Código del Resultado test_update: " + response.getStatusCode());
+
+        test.log(Status.PASS, "Gasto actualizado existosamente");
     }
 
     @Test @Order(3)
     void test_getAll() {
+
+        test.log(Status.INFO, "Inicia el test_getAll");
 
         Response response = given()
                 .header("Authorization", "Bearer " + jwt)
@@ -133,10 +167,14 @@ public class TestExpense {
                 .extract().response();
 
         System.out.println("Código del Resultado test_getAll: " + response.getStatusCode());
+
+        test.log(Status.PASS, "Gastos obtenidos existosamente");
     }
 
     @Test @Order(4)
     void test_getById() {
+
+        test.log(Status.INFO, "Inicia el test_getById");
 
         Response response = given()
                 .header("Authorization", "Bearer " + jwt)
@@ -151,17 +189,20 @@ public class TestExpense {
                 .extract().response();
 
         System.out.println("Código del Resultado test_getById: " + response.getStatusCode());
+
+        test.log(Status.PASS, "Gasto obtenido existosamente");
     }
 
     @Test @Order(5)
     void test_findForHomeByUser() {
+
+        test.log(Status.INFO, "Inicia el test_findForHomeByUser");
 
         Response response = given()
                 .header("Authorization", "Bearer " + jwt)
                 .when()
                 .get(URL_findForHomeByUser)
                 .then()
-                .log().all()
                 .statusCode(200)
                 .body("status", equalTo("OK"))
                 .and().body("response.firstName", equalTo(name))
@@ -176,10 +217,14 @@ public class TestExpense {
                 .extract().response();
 
         System.out.println("Código del Resultado test_findForHomeByUser: " + response.getStatusCode());
+
+        test.log(Status.PASS, "Información para el inicio obtenida existosamente");
     }
 
     @Test @Order(6)
     void test_groupByCategoryByUserId() {
+
+        test.log(Status.INFO, "Inicia el test_groupByCategoryByUserId");
 
         Response response = given()
                 .header("Authorization", "Bearer " + jwt)
@@ -191,10 +236,14 @@ public class TestExpense {
                 .extract().response();
 
         System.out.println("Código del Resultado test_groupByCategoryByUserId: " + response.getStatusCode());
+
+        test.log(Status.PASS, "Información por categoría obtenida existosamente");
     }
 
     @Test @Order(7)
     void test_statistics() {
+
+        test.log(Status.INFO, "Inicia el test_statistics");
 
         Response response = given()
                 .header("Authorization", "Bearer " + jwt)
@@ -203,7 +252,6 @@ public class TestExpense {
                 .then()
                 .statusCode(200)
                 .body("status", equalTo("OK"))
-                .log().all()
                 .body("response.incomes", iterableWithSize(12))
                 .and().body("response.incomes", Every.everyItem(notNullValue()))
                 .and().body("response.expenses", iterableWithSize(12))
@@ -213,10 +261,14 @@ public class TestExpense {
                 .extract().response();
 
         System.out.println("Código del Resultado test_statistics: " + response.getStatusCode());
+
+        test.log(Status.PASS, "Información para estadísticas obtenida existosamente");
     }
 
     @Test @Order(8)
     void test_delete() {
+
+        test.log(Status.INFO, "Inicia el test_delete");
 
         Response response = given()
                 .header("Authorization", "Bearer " + jwt)
@@ -227,5 +279,12 @@ public class TestExpense {
                 .extract().response();
 
         System.out.println("Código del Resultado test_delete: " + response.getStatusCode());
+
+        test.log(Status.PASS, "Gasto eliminado existosamente");
+    }
+
+    @AfterAll
+    static void tearDown(){
+        extent.flush();
     }
 }
