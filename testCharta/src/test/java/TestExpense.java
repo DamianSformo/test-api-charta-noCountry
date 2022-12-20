@@ -2,6 +2,7 @@ import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
 import org.hamcrest.Matchers;
+import org.hamcrest.core.Every;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.*;
 import io.restassured.response.Response;
@@ -120,9 +121,15 @@ public class TestExpense {
                 .get(URL_findAllByUser)
                 .then()
                 .statusCode(200)
-                .and().body("status", equalTo("OK"))
-                .and().body("response[0].description", notNullValue())
-                .and().body("response[0].amount", notNullValue())
+                .body("status", equalTo("OK"))
+                .and().body("response.amount", Every.everyItem(notNullValue()))
+                .and().body("response.description", Every.everyItem(notNullValue()))
+                .and().body("response.categoryName", Every.everyItem(notNullValue()))
+                .and().body("response.currencyCode", Every.everyItem(notNullValue()))
+                .and().body("response.date", Every.everyItem(notNullValue()))
+                .and().body("response.isIncluded", Every.everyItem(anyOf(
+                        equalTo(true),
+                        equalTo(false))))
                 .extract().response();
 
         System.out.println("Código del Resultado test_getAll: " + response.getStatusCode());
@@ -158,10 +165,14 @@ public class TestExpense {
                 .statusCode(200)
                 .body("status", equalTo("OK"))
                 .and().body("response.firstName", equalTo(name))
-                .and().body("response.moves.type", Matchers.hasItem(notNullValue()))
-                .and().body("response.moves.type", Matchers.hasItems(anyOf(
-                        containsString("ingreso"),
-                        containsString("gasto"))))
+                .and().body("response.moves.amount", Every.everyItem(notNullValue()))
+                .and().body("response.moves.categoryName", Every.everyItem(notNullValue()))
+                .and().body("response.moves.type", Every.everyItem(anyOf(
+                        equalTo("ingreso"),
+                        equalTo("gasto"))))
+                .and().body("response.moves.isIncluded", Every.everyItem(anyOf(
+                        equalTo(true),
+                        equalTo(false))))
                 .extract().response();
 
         System.out.println("Código del Resultado test_findForHomeByUser: " + response.getStatusCode());
@@ -194,11 +205,11 @@ public class TestExpense {
                 .body("status", equalTo("OK"))
                 .log().all()
                 .body("response.incomes", iterableWithSize(12))
-                .body("response.incomes", Matchers.allOf(notNullValue()))
-                .body("response.expenses", iterableWithSize(12))
-                .body("response.expenses", Matchers.allOf(notNullValue()))
-                .body("response.months", iterableWithSize(12))
-                .body("response.months", Matchers.hasItems("DECEMBER", "JANUARY"))
+                .and().body("response.incomes", Every.everyItem(notNullValue()))
+                .and().body("response.expenses", iterableWithSize(12))
+                .and().body("response.expenses", Every.everyItem(notNullValue()))
+                .and().body("response.months", iterableWithSize(12))
+                .and().body("response.months", Matchers.hasItems("diciembre", "enero"))
                 .extract().response();
 
         System.out.println("Código del Resultado test_statistics: " + response.getStatusCode());
