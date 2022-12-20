@@ -155,5 +155,4 @@ public class TestIncome {
 
         System.out.println("Código del Resultado test_delete: " + response.getStatusCode());
     }
-
 }
