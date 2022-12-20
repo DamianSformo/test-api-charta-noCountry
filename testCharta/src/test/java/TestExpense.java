@@ -103,15 +103,12 @@ public class TestExpense {
                 .when()
                 .put(URL_update + expenseId)
                 .then()
-                .log().all()
                 .body("status", equalTo("OK"))
                 .and().body("response.description", equalTo(description_update))
                 .and().body("response.date", equalTo(date_update))
                 .extract().response();
 
-        System.out.println("Código del Resultado test_save: " + response.getStatusCode());
-
-        categoryId = response.getBody().jsonPath().getInt("response.id");
+        System.out.println("Código del Resultado test_update: " + response.getStatusCode());
     }
 
     @Test @Order(3)
